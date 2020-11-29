@@ -157,7 +157,7 @@ class ExperimentBuilder(nn.Module):
 
         for name, param in named_parameters:
             layers.append(name)
-            all_grads.append(np.mean(np.abs(param)))
+            all_grads.append(np.mean(np.abs(param.cpu())))
         
         ########################################
             
