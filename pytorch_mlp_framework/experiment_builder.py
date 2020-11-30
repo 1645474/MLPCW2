@@ -157,8 +157,8 @@ class ExperimentBuilder(nn.Module):
 
         for name, param in named_parameters:
             if name[-6:] == "weight":
-                layers.append(name[11:])
-                all_grads.append(np.mean(np.abs(param.detach().cpu().numpy())))
+                layers.append(name[11:-6])
+                all_grads.append(np.mean(np.abs(param.grad.cpu().numpy())))
         
         ########################################
             
