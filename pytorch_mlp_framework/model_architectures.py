@@ -428,7 +428,7 @@ class ConvolutionalNetwork(nn.Module):
             if self.processing_block_type == DenseBlock:
                 # self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=int(self.num_filters*(0.5**i)), bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
                 self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
-                out = self.layer_dict['dense_block_{}'.format(i)].forward(out)
+                out = self.layer_dict['dense_block_{}'.format(i)].forward(out, self.num_blocks_per_stage)
             else:
                 for j in range(self.num_blocks_per_stage):
                     self.layer_dict['block_{}_{}'.format(i, j)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1)
