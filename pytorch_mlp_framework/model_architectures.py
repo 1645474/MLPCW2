@@ -320,7 +320,7 @@ class DenseBlockDouble(nn.Module):
             self.layer_dict['bn_{}_1'.format(j)] = nn.BatchNorm2d(num_features=in_channels)
             intermediate_out = self.layer_dict['bn_{}_1'.format(j)](intermediate_out)
             intermediate_out = F.relu(intermediate_out)
-            self.layer_dict['conv_3x3_{}'.format(j)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.3, dilation=self.dilation, padding=self.padding, stride=1)
+            self.layer_dict['conv_3x3_{}'.format(j)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=3, dilation=self.dilation, padding=self.padding, stride=1)
 
             if i == 1:
                 out = self.layer_dict['conv_3x3_{}'.format(j)](intermediate_out)
