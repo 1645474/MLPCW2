@@ -266,7 +266,7 @@ class DenseBlock(nn.Module):
             if i == 1:
                 out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
             else:
-                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 3)
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 1)
 
         print(out.shape)
 
@@ -282,7 +282,7 @@ class DenseBlock(nn.Module):
             if i == 1:
                 out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
             else:
-                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 3)
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 1)
         print("dense shape out", out.shape)
         return out
 
