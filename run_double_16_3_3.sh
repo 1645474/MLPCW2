@@ -1,0 +1,1 @@
+python pytorch_mlp_framework/train_evaluate_image_classification_system.py --batch_size 100 --seed 0 --num_filters 16 --num_stages 3 --num_blocks_per_stage 3 --experiment_name double_16_3_3 --use_gpu True --num_classes 100 --block_type 'dense_block_double' --continue_from_epoch -1
