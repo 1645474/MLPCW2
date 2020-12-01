@@ -266,13 +266,13 @@ class DenseBlock(nn.Module):
             if i == 1:
                 out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
             else:
-                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 3)
 
         print(out.shape)
 
     def forward(self, x, num_blocks_per_stage):
         out = x
-        print("shape in", out.shape)
+        print("dense shape in", out.shape)
 
         for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
@@ -282,8 +282,8 @@ class DenseBlock(nn.Module):
             if i == 1:
                 out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
             else:
-                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
-        print("shape out", out.shape)
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 3)
+        print("dense shape out", out.shape)
         return out
 
 		
@@ -315,12 +315,14 @@ class TransitionLayer(nn.Module):
 
     def forward(self, x):
         out = x
+        print("  trans shape in", out.shape)
 
         out = self.layer_dict['bn_0'].forward(out)
         out = F.avg_pool2d(out, 2)
 
+        print("  trans shape out", out.shape)
         return out
-#SPACES NOT TABS. ALSO DO UNIT TESTS
+
 
 class ConvolutionalNetwork(nn.Module):
     def __init__(self, input_shape, num_output_classes, num_filters,
