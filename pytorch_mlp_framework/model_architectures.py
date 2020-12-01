@@ -300,7 +300,7 @@ class TransitionLayer(nn.Module):
         in_channels = out.shape[1]
 
         self.layer_dict['bn_0'] = nn.BatchNorm2d(num_features=in_channels)
-		out = self.layer_dict['bn_0'](out)
+        out = self.layer_dict['bn_0'](out)
 
         out = F.avg_pool2d(out, 2)
 
