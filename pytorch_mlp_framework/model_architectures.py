@@ -237,6 +237,84 @@ class ConvolutionalDimensionalityReductionBlock(nn.Module):
         return out
 
 
+class DenseBlock(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, num_blocks_per_stage):
+        super(ConvolutionalProcessingBlock, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.num_blocks_per_stage = num_blocks_per_stage
+
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+
+        for i in range(num_blocks_per_stage):
+            in_channels = out.shape[1]
+
+            self.layer_dict['bn_{}.format(i)'] = nn.BatchNorm2d(num_features=in_channels)
+            intermediate_out = self.layer_dict['bn_{}.format(i)'](out)
+            intermediate_out = F.relu(intermediate_out)
+            self.layer_dict['conv_{}.format(i)'] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.kernel_size, dilation=self.dilation, padding=self.padding, stride=1)
+            out = torch.cat(out, self.layer_dict['conv_{}.format(i)'](intermediate_out), dim=0)
+
+        print(out.shape)
+
+    def forward(self, x, num_blocks_per_stage):
+        out = x
+
+        for i in range(num_blocks_per_stage):
+            in_channels = out.shape[1]
+
+            intermediate_out = self.layer_dict['bn_{}.format(i)'](out)
+            intermediate_out = F.relu(intermediate_out)
+            out = torch.cat(out, self.layer_dict['conv_{}.format(i)'](intermediate_out), dim=0)
+
+        return out
+
+		
+class TransitionLayer(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, reduction_factor):
+        super(ConvolutionalDimensionalityReductionBlock, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.reduction_factor = reduction_factor
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+		in_channels = out.shape[1]
+
+        self.layer_dict['bn_0'] = nn.BatchNorm2d(num_features=in_channels)
+		out = self.layer_dict['bn_0'](out)
+
+        out = F.avg_pool2d(out, 2)
+
+        print(out.shape)
+
+    def forward(self, x):
+        out = x
+
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.avg_pool2d(out, 2)
+
+        return out
+#SPACES NOT TABS. ALSO DO UNIT TESTS
+
 class ConvolutionalNetwork(nn.Module):
     def __init__(self, input_shape, num_output_classes, num_filters,
                  num_blocks_per_stage, num_stages, use_bias=False, processing_block_type=ConvolutionalProcessingBlock,
@@ -284,13 +362,12 @@ class ConvolutionalNetwork(nn.Module):
         out = self.layer_dict['input_conv'].forward(out)
         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
         for i in range(self.num_stages):  # for number of layers times
-            for j in range(self.num_blocks_per_stage):
-                self.layer_dict['block_{}_{}'.format(i, j)] = self.processing_block_type(input_shape=out.shape,
-                                                                                         num_filters=self.num_filters,
-                                                                                         bias=self.use_bias,
-                                                                                         kernel_size=3, dilation=1,
-                                                                                         padding=1)
-                out = self.layer_dict['block_{}_{}'.format(i, j)].forward(out)
+            if processing_block_type == DenseBlock:
+                self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
+            else:
+                for j in range(self.num_blocks_per_stage):
+                    self.layer_dict['block_{}_{}'.format(i, j)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1)
+                    out = self.layer_dict['block_{}_{}'.format(i, j)].forward(out)
             self.layer_dict['reduction_block_{}'.format(i)] = self.dimensionality_reduction_block_type(
                 input_shape=out.shape,
                 num_filters=self.num_filters, bias=True,
@@ -318,8 +395,11 @@ class ConvolutionalNetwork(nn.Module):
         out = x
         out = self.layer_dict['input_conv'].forward(out)
         for i in range(self.num_stages):  # for number of layers times
-            for j in range(self.num_blocks_per_stage):
-                out = self.layer_dict['block_{}_{}'.format(i, j)].forward(out)
+            if self.processing_block_type == DenseBlock:
+                out = self.layer_dict['block_{}'.format(i)].forward(out)
+            else:
+                for j in range(self.num_blocks_per_stage):
+                    out = self.layer_dict['block_{}_{}'.format(i, j)].forward(out)
             out = self.layer_dict['reduction_block_{}'.format(i)].forward(out)
 
         out = F.avg_pool2d(out, out.shape[-1])
