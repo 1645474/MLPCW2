@@ -272,6 +272,7 @@ class DenseBlock(nn.Module):
 
     def forward(self, x, num_blocks_per_stage):
         out = x
+        print("shape in", out.shape)
 
         for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
@@ -282,7 +283,7 @@ class DenseBlock(nn.Module):
                 out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
             else:
                 out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
-
+        print("shape out", out.shape)
         return out
 
 		
@@ -408,8 +409,7 @@ class ConvolutionalNetwork(nn.Module):
                     out = self.layer_dict['block_{}_{}'.format(i, j)].forward(out)
             out = self.layer_dict['reduction_block_{}'.format(i)].forward(out)
 
-        # out = F.avg_pool2d(out, out.shape[-1])
-        out = F.avg_pool2d(out, 8)
+        out = F.avg_pool2d(out, out.shape[-1])
         out = out.view(out.shape[0], -1)  # flatten outputs from (b, c, h, w) to (b, c*h*w)
         out = self.logit_linear_layer(out)  # pass through a linear layer to get logits/preds
         return out
