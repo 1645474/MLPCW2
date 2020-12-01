@@ -396,7 +396,7 @@ class ConvolutionalNetwork(nn.Module):
         out = self.layer_dict['input_conv'].forward(out)
         for i in range(self.num_stages):  # for number of layers times
             if self.processing_block_type == DenseBlock:
-                out = self.layer_dict['block_{}'.format(i)].forward(out)
+                out = self.layer_dict['dense_block_{}'.format(i)].forward(out)
             else:
                 for j in range(self.num_blocks_per_stage):
                     out = self.layer_dict['block_{}_{}'.format(i, j)].forward(out)
