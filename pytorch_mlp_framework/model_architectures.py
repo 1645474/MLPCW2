@@ -272,7 +272,7 @@ class DenseBlock(nn.Module):
 
     def forward(self, x, num_blocks_per_stage):
         out = x
-        print("dense shape in", out.shape)
+        # print("dense shape in", out.shape)
 
         for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
@@ -283,7 +283,7 @@ class DenseBlock(nn.Module):
                 out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
             else:
                 out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 1)
-        print("dense shape out", out.shape)
+        # print("dense shape out", out.shape)
         return out
 
 		
@@ -315,12 +315,12 @@ class TransitionLayer(nn.Module):
 
     def forward(self, x):
         out = x
-        print("  trans shape in", out.shape)
+        # print("  trans shape in", out.shape)
 
         out = self.layer_dict['bn_0'].forward(out)
         out = F.avg_pool2d(out, 2)
 
-        print("  trans shape out", out.shape)
+        # print("  trans shape out", out.shape)
         return out
 
 
