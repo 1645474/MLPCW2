@@ -258,7 +258,7 @@ class DenseBlock(nn.Module):
 
         for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
-			j = self.num_blocks_per_stage-i
+            j = self.num_blocks_per_stage-i
 
             self.layer_dict['bn_{}'.format(j)] = nn.BatchNorm2d(num_features=in_channels)
             intermediate_out = self.layer_dict['bn_{}'.format(j)](out)
@@ -277,7 +277,7 @@ class DenseBlock(nn.Module):
 
         for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
-			j = self.num_blocks_per_stage-i
+            j = self.num_blocks_per_stage-i
 
             intermediate_out = self.layer_dict['bn_{}'.format(j)](out)
             intermediate_out = F.relu(intermediate_out)
