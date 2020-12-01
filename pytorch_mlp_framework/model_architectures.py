@@ -260,10 +260,10 @@ class DenseBlock(nn.Module):
             in_channels = out.shape[1]
 
             self.layer_dict['bn_{}'.format(i)] = nn.BatchNorm2d(num_features=in_channels)
-            intermediate_out = self.layer_dict['bn_{}.format(i)'](out)
+            intermediate_out = self.layer_dict['bn_{}'.format(i)](out)
             intermediate_out = F.relu(intermediate_out)
             self.layer_dict['conv_{}'.format(i)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.kernel_size, dilation=self.dilation, padding=self.padding, stride=1)
-            out = torch.cat(out, self.layer_dict['conv_{}.format(i)'](intermediate_out), dim=0)
+            out = torch.cat(out, self.layer_dict['conv_{}'.format(i)](intermediate_out), dim=0)
 
         print(out.shape)
 
