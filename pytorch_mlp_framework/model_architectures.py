@@ -239,7 +239,7 @@ class ConvolutionalDimensionalityReductionBlock(nn.Module):
 
 class DenseBlock(nn.Module):
     def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, num_blocks_per_stage):
-        super(ConvolutionalProcessingBlock, self).__init__()
+        super(DenseBlock, self).__init__()
 
         self.num_filters = num_filters
         self.kernel_size = kernel_size
@@ -282,7 +282,7 @@ class DenseBlock(nn.Module):
 		
 class TransitionLayer(nn.Module):
     def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, reduction_factor):
-        super(ConvolutionalDimensionalityReductionBlock, self).__init__()
+        super(TransitionLayer, self).__init__()
 
         self.num_filters = num_filters
         self.kernel_size = kernel_size
