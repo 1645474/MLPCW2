@@ -362,7 +362,7 @@ class ConvolutionalNetwork(nn.Module):
         out = self.layer_dict['input_conv'].forward(out)
         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
         for i in range(self.num_stages):  # for number of layers times
-            if processing_block_type == DenseBlock:
+            if self.processing_block_type == DenseBlock:
                 self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
             else:
                 for j in range(self.num_blocks_per_stage):
