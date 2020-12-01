@@ -289,6 +289,58 @@ class DenseBlock(nn.Module):
         return out
 
 
+class DenseBlockDouble(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, num_blocks_per_stage):
+        super(DenseBlock, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.num_blocks_per_stage = num_blocks_per_stage
+
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+
+        for i in range(self.num_blocks_per_stage, 0, -1):
+            in_channels = out.shape[1]
+            j = self.num_blocks_per_stage-i
+
+            self.layer_dict['bn_{}'.format(j)] = nn.BatchNorm2d(num_features=in_channels)
+            intermediate_out = self.layer_dict['bn_{}'.format(j)](out)
+            intermediate_out = F.relu(intermediate_out)
+            self.layer_dict['conv_{}'.format(j)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.kernel_size, dilation=self.dilation, padding=self.padding, stride=1)
+            if i == 1:
+                out = self.layer_dict['conv_{}'.format(j)](intermediate_out)
+            else:
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(j)](intermediate_out)), 1)
+
+        print(out.shape)
+
+    def forward(self, x, num_blocks_per_stage):
+        out = x
+        # print("dense shape in", out.shape)
+
+        for i in range(self.num_blocks_per_stage, 0, -1):
+            in_channels = out.shape[1]
+            j = self.num_blocks_per_stage-i
+
+            intermediate_out = self.layer_dict['bn_{}'.format(j)](out)
+            intermediate_out = F.relu(intermediate_out)
+            if i == 1:
+                out = self.layer_dict['conv_{}'.format(j)](intermediate_out)
+            else:
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(j)](intermediate_out)), 1)
+        # print("dense shape out", out.shape)
+        return out
+
+
 class TransitionLayer(nn.Module):
     def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, reduction_factor):
         super(TransitionLayer, self).__init__()
@@ -374,7 +426,7 @@ class ConvolutionalNetwork(nn.Module):
         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
         for i in range(self.num_stages):  # for number of layers times
             if self.processing_block_type == DenseBlock:
-                self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
+                self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=(self.num_filters*(0.5**i)), bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
             else:
                 for j in range(self.num_blocks_per_stage):
                     self.layer_dict['block_{}_{}'.format(i, j)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1)
