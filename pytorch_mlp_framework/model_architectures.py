@@ -256,7 +256,7 @@ class DenseBlock(nn.Module):
         x = torch.zeros(self.input_shape)
         out = x
 
-        for i in range(num_blocks_per_stage):
+        for i in range(self.num_blocks_per_stage):
             in_channels = out.shape[1]
 
             self.layer_dict['bn_{}.format(i)'] = nn.BatchNorm2d(num_features=in_channels)
@@ -270,7 +270,7 @@ class DenseBlock(nn.Module):
     def forward(self, x, num_blocks_per_stage):
         out = x
 
-        for i in range(num_blocks_per_stage):
+        for i in range(self.num_blocks_per_stage):
             in_channels = out.shape[1]
 
             intermediate_out = self.layer_dict['bn_{}.format(i)'](out)
