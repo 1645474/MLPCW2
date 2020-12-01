@@ -256,26 +256,32 @@ class DenseBlock(nn.Module):
         x = torch.zeros(self.input_shape)
         out = x
 
-        for i in range(self.num_blocks_per_stage):
+        for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
 
             self.layer_dict['bn_{}'.format(i)] = nn.BatchNorm2d(num_features=in_channels)
             intermediate_out = self.layer_dict['bn_{}'.format(i)](out)
             intermediate_out = F.relu(intermediate_out)
             self.layer_dict['conv_{}'.format(i)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.kernel_size, dilation=self.dilation, padding=self.padding, stride=1)
-            out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
+            if i == 1:
+                out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
+            else:
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
 
         print(out.shape)
 
     def forward(self, x, num_blocks_per_stage):
         out = x
 
-        for i in range(self.num_blocks_per_stage):
+        for i in range(self.num_blocks_per_stage, 0, -1):
             in_channels = out.shape[1]
 
             intermediate_out = self.layer_dict['bn_{}'.format(i)](out)
             intermediate_out = F.relu(intermediate_out)
-            out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
+            if i == 1:
+                out = self.layer_dict['conv_{}'.format(i)](intermediate_out)
+            else:
+                out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
 
         return out
 
