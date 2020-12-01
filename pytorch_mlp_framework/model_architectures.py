@@ -312,14 +312,20 @@ class DenseBlockDouble(nn.Module):
             in_channels = out.shape[1]
             j = self.num_blocks_per_stage-i
 
-            self.layer_dict['bn_{}'.format(j)] = nn.BatchNorm2d(num_features=in_channels)
-            intermediate_out = self.layer_dict['bn_{}'.format(j)](out)
+            self.layer_dict['bn_{}_0'.format(j)] = nn.BatchNorm2d(num_features=in_channels)
+            intermediate_out = self.layer_dict['bn_{}_0'.format(j)](out)
             intermediate_out = F.relu(intermediate_out)
-            self.layer_dict['conv_{}'.format(j)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.kernel_size, dilation=self.dilation, padding=self.padding, stride=1)
+            self.layer_dict['conv_1x1_{}'.format(j)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=1, dilation=self.dilation, padding=self.padding, stride=1)
+			intermediate_out = self.layer_dict['conv_1x1_{}'.format(j)](intermediate_out)
+			self.layer_dict['bn_{}_1'.format(j)] = nn.BatchNorm2d(num_features=in_channels)
+            intermediate_out = self.layer_dict['bn_{}_1'.format(j)](intermediate_out)
+            intermediate_out = F.relu(intermediate_out)
+            self.layer_dict['conv_3x3_{}'.format(j)] = nn.Conv2d(in_channels=in_channels, out_channels=self.num_filters, bias=self.bias, kernel_size=self.3, dilation=self.dilation, padding=self.padding, stride=1)
+			
             if i == 1:
-                out = self.layer_dict['conv_{}'.format(j)](intermediate_out)
+                out = self.layer_dict['conv_3x3_{}'.format(j)](intermediate_out)
             else:
-                out = torch.cat((out, self.layer_dict['conv_{}'.format(j)](intermediate_out)), 1)
+                out = torch.cat((out, self.layer_dict['conv_3x3_{}'.format(j)](intermediate_out)), 1)
 
         print(out.shape)
 
@@ -331,12 +337,16 @@ class DenseBlockDouble(nn.Module):
             in_channels = out.shape[1]
             j = self.num_blocks_per_stage-i
 
-            intermediate_out = self.layer_dict['bn_{}'.format(j)](out)
+            intermediate_out = self.layer_dict['bn_{}_0'.format(j)](out)
             intermediate_out = F.relu(intermediate_out)
+            intermediate_out = self.layer_dict['conv_1x1_{}'.format(j)](intermediate_out)
+            intermediate_out = self.layer_dict['bn_{}_1'.format(j)](intermediate_out)
+            intermediate_out = F.relu(intermediate_out)
+
             if i == 1:
-                out = self.layer_dict['conv_{}'.format(j)](intermediate_out)
+                out = self.layer_dict['conv_3x3_{}'.format(j)](intermediate_out)
             else:
-                out = torch.cat((out, self.layer_dict['conv_{}'.format(j)](intermediate_out)), 1)
+                out = torch.cat((out, self.layer_dict['conv_3x3_{}'.format(j)](intermediate_out)), 1)
         # print("dense shape out", out.shape)
         return out
 
@@ -425,7 +435,7 @@ class ConvolutionalNetwork(nn.Module):
         out = self.layer_dict['input_conv'].forward(out)
         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
         for i in range(self.num_stages):  # for number of layers times
-            if self.processing_block_type == DenseBlock:
+            if self.processing_block_type in [DenseBlock, DenseBlockDouble]:
                 self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=int(self.num_filters*(0.5**i)), bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
                 # self.layer_dict['dense_block_{}'.format(i)] = self.processing_block_type(input_shape=out.shape, num_filters=self.num_filters, bias=self.use_bias, kernel_size=3, dilation=1, padding=1, num_blocks_per_stage=self.num_blocks_per_stage)
                 out = self.layer_dict['dense_block_{}'.format(i)].forward(out, self.num_blocks_per_stage)
@@ -458,7 +468,7 @@ class ConvolutionalNetwork(nn.Module):
         out = x
         out = self.layer_dict['input_conv'].forward(out)
         for i in range(self.num_stages):  # for number of layers times
-            if self.processing_block_type == DenseBlock:
+            if self.processing_block_type in [DenseBlock, DenseBlockDouble]:
                 out = self.layer_dict['dense_block_{}'.format(i)].forward(out, self.num_blocks_per_stage)
             else:
                 for j in range(self.num_blocks_per_stage):
