@@ -275,7 +275,7 @@ class DenseBlock(nn.Module):
 
             intermediate_out = self.layer_dict['bn_{}'.format(i)](out)
             intermediate_out = F.relu(intermediate_out)
-            out = torch.cat(out, self.layer_dict['conv_{}'.format(i)](intermediate_out), dim=0)
+            out = torch.cat((out, self.layer_dict['conv_{}'.format(i)](intermediate_out)), 0)
 
         return out
 
