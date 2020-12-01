@@ -297,7 +297,7 @@ class TransitionLayer(nn.Module):
         self.layer_dict = nn.ModuleDict()
         x = torch.zeros(self.input_shape)
         out = x
-		in_channels = out.shape[1]
+        in_channels = out.shape[1]
 
         self.layer_dict['bn_0'] = nn.BatchNorm2d(num_features=in_channels)
 		out = self.layer_dict['bn_0'](out)
